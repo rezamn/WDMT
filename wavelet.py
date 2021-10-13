@@ -106,28 +106,53 @@ if __name__ == '__main__':
 
     s = sy(w)
 
-    plt.figure(1)
+    fig = plt.figure(figsize=(5, 6))
+
+    plt.subplot(2, 1, 1)
     line1, = plt.plot(w, np.real(s), label='real part')
     line2, = plt.plot(w, np.imag(s), label='imaginary part')
     line3, = plt.plot(w, np.abs(s), label='amplitude')
+
+    ax = plt.gca()
+
+    ax.spines['left'].set_position('zero')
+    ax.spines['right'].set_color('none')
+    ax.spines['bottom'].set_position('zero')
+    ax.spines['top'].set_color('none')
+
     plt.xlim([-10, 10])
-    plt.xlabel(r"$\omega$")
-    plt.ylabel(r"Amplitude")
-    plt.legend()
-    plt.show()
+    plt.ylim([-1.5, 1.5])
+    plt.xlabel(r"$\omega$", loc="right")
+    plt.ylabel(r"Amplitude", loc="top", rotation=0)
+    plt.text(-9, 1.25, "(a)")
+    plt.legend(loc="upper right", fontsize=6)
 
     st = np.fft.ifft(np.fft.ifftshift(s), norm='backward')
     st = np.fft.fftshift(np.real(st))
     t = np.arange(-N / 2, N / 2) / fs
 
-    plt.figure(2)
+    plt.subplot(2, 1, 2)
     plt.plot(t, st * fs)
+
+    ax = plt.gca()
+
+    ax.spines['left'].set_position('zero')
+    ax.spines['right'].set_color('none')
+    ax.spines['bottom'].set_position('zero')
+    ax.spines['top'].set_color('none')
+
     plt.ylim([-1.5, 1.5])
     plt.xlim([-5, 5])
+    plt.xlabel(r"t", loc="right")
+    plt.ylabel(r"Amplitude", loc="top", rotation=0)
+    plt.text(-4.5, 1.25, "(b)")
+    plt.tight_layout()
+    plt.savefig("fig1.eps")
     plt.show()
 
     N = 1024
     fs = 10
+    T = N / fs
     t = np.arange(N) / fs
     xi = np.sin(2 * np.pi * 1 * t) + np.sin(2 * np.pi * .1 * t) + np.sin(2 * np.pi * .01 * t)
     a_jk = wavelet_transform(xi, N, fs)
@@ -143,14 +168,53 @@ if __name__ == '__main__':
     plt.show()
     print(np.sum(xt ** 2 - xi ** 2) / np.sum(xi ** 2))
 
-    plt.figure(4)
-    max_j = int(np.log2(N))
-    for i in range(max_j):
-        print(i)
+    max_j = np.uint(np.log2(N))
+    fig, axs = plt.subplots(max_j + 1, 1, sharex='col', sharey='row', figsize=(6, 8))
+
+    for i in np.arange(max_j):
         xt2 = inverse_wavelet_transform_j(a_jk[i], N, fs, i)
-        xt = inverse_wavelet_transform_2(a_jk, fs, i, i + 1)
-        plt.subplot(max_j, 1, i + 1)
-        plt.plot(t, xt)
-        plt.plot(t, xt2)
-        plt.ylim([-2, 2])
+        # xt = inverse_wavelet_transform_2(a_jk, fs, i, i + 1)
+        # plt.subplot(max_j, 1, i + 1)
+        # axs[i, 1].plot(t, xt)
+        axs[i + 1].plot(t, xt2, linewidth=.5, color="blue")
+        axs[i + 1].set_ylim(-2, 2)
+        if i != max_j - 1:
+            axs[i + 1].spines['right'].set_visible(False)
+            axs[i + 1].spines['left'].set_visible(True)
+            axs[i + 1].spines['top'].set_visible(False)
+            axs[i + 1].spines['bottom'].set_visible(False)
+            axs[i + 1].yaxis.set_major_locator(MultipleLocator(2))
+            axs[i + 1].yaxis.set_minor_locator(MultipleLocator(1))
+            # axs[i].set_yticks([])
+            axs[i + 1].set_xticks([])
+            axs[i + 1].tick_params(axis='both', which='both', bottom=False, top=False, right=False, left=True,
+                                   labelsize=6)
+        else:
+            axs[i + 1].spines['bottom'].set_visible(True)
+            axs[i + 1].spines['right'].set_visible(False)
+            axs[i + 1].spines['top'].set_visible(False)
+            axs[i + 1].tick_params(axis='both', which='both', bottom=True, labelsize=6)
+            axs[i + 1].xaxis.set_major_locator(MultipleLocator(50))
+            axs[i + 1].xaxis.set_minor_locator(MultipleLocator(25))
+            axs[i + 1].yaxis.set_major_locator(MultipleLocator(2))
+            axs[i + 1].yaxis.set_minor_locator(MultipleLocator(1))
+        axs[i + 1].set_ylabel("scale: j= %d\nfreq: f= [%.2f %.2f]" % (i, 2 ** i / 3 / T, 2 ** i * 4 / 3 / T),
+                              fontsize=6, rotation=0, labelpad=30)
+        axs[i + 1].set_xlabel("time (s)")
+
+    axs[0].plot(t, xi, linewidth=.5, color="red")
+    axs[0].spines['right'].set_visible(False)
+    axs[0].spines['left'].set_visible(True)
+    axs[0].spines['top'].set_visible(False)
+    axs[0].spines['bottom'].set_visible(False)
+    axs[0].tick_params(axis='both', which='both', bottom=False, top=False, right=False, left=True,
+                       labelsize=6)
+    axs[0].set_ylim(-3, 3)
+    axs[0].yaxis.set_major_locator(MultipleLocator(3))
+    axs[0].yaxis.set_minor_locator(MultipleLocator(1))
+    axs[0].set_ylabel("Original signal", fontsize=6, rotation=0, labelpad=30)
+
+
+    plt.tight_layout()
+    plt.savefig("fig2.eps")
     plt.show()
