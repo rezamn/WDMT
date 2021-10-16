@@ -1,5 +1,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import os
+
+from matplotlib.ticker import MultipleLocator
 
 
 def h(omega):
@@ -98,6 +101,9 @@ def inverse_wavelet_transform_2(alpha, sampling_frequency, j_min=0, j_max=0):
 
 
 if __name__ == '__main__':
+    if not os.path.exists("output"):
+        os.mkdir("output")
+
     N = 2 ** 13
     fs = 100
     df = fs / N
@@ -147,7 +153,7 @@ if __name__ == '__main__':
     plt.ylabel(r"Amplitude", loc="top", rotation=0)
     plt.text(-4.5, 1.25, "(b)")
     plt.tight_layout()
-    plt.savefig("fig1.eps")
+    plt.savefig(".\\output\\fig1.eps")
     plt.show()
 
     N = 1024
@@ -159,14 +165,14 @@ if __name__ == '__main__':
 
     xt = inverse_wavelet_transform(a_jk, fs)
 
-    plt.figure(3)
-    plt.subplot(211)
-    plt.plot(t, xi)
-    plt.subplot(212)
-    plt.plot(t, xi)
-    plt.plot(t, xt)
-    plt.show()
-    print(np.sum(xt ** 2 - xi ** 2) / np.sum(xi ** 2))
+    # plt.figure(3)
+    # plt.subplot(211)
+    # plt.plot(t, xi)
+    # plt.subplot(212)
+    # plt.plot(t, xi)
+    # plt.plot(t, xt)
+    # plt.show()
+    # print(np.sum(xt ** 2 - xi ** 2) / np.sum(xi ** 2))
 
     max_j = np.uint(np.log2(N))
     fig, axs = plt.subplots(max_j + 1, 1, sharex='col', sharey='row', figsize=(6, 8))
@@ -198,9 +204,10 @@ if __name__ == '__main__':
             axs[i + 1].xaxis.set_minor_locator(MultipleLocator(25))
             axs[i + 1].yaxis.set_major_locator(MultipleLocator(2))
             axs[i + 1].yaxis.set_minor_locator(MultipleLocator(1))
+            axs[i + 1].set_xlabel("time (s)")
         axs[i + 1].set_ylabel("scale: j= %d\nfreq: f= [%.2f %.2f]" % (i, 2 ** i / 3 / T, 2 ** i * 4 / 3 / T),
                               fontsize=6, rotation=0, labelpad=30)
-        axs[i + 1].set_xlabel("time (s)")
+
 
     axs[0].plot(t, xi, linewidth=.5, color="red")
     axs[0].spines['right'].set_visible(False)
@@ -216,5 +223,5 @@ if __name__ == '__main__':
 
 
     plt.tight_layout()
-    plt.savefig("fig2.eps")
+    plt.savefig(".\\output\\fig2.eps")
     plt.show()
