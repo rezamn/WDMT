@@ -10,6 +10,6 @@ There are running commands in run.txt for synthetic and real test in the run.txt
 
 ## UNDER DEVELOPING
 Developers:
-Reza Mansouri
-Mohammad Shokri-Kaveh
+Reza Mansouri,
+Mohammad Shokri-Kaveh,
 Mehrdad Pakzad
