@@ -65,7 +65,18 @@ T_dips = []
 P_dips = []
 plane1 = []
 plane2 = []
-for j in range(4, int(next_pow2(ori_data[0].stats.npts))):
+
+if args.jmin == 'None':
+    jmin = 0
+else:
+    jmin = int(args.jmin)
+
+if args.jmax = 'None':
+	  jmax = int(next_pow2(ori_data[0].stats.npts))
+else:
+	  jmax = int(args.jmax)
+	  	
+for j in range(jmin, jmax):
     print("j = %d freqmin = %.3f freqmax = %.3f" % (
         j, 2 ** j / 3 / (2 ** next_pow2(ori_data[0].stats.npts)) / ori_data[0].stats.delta,
         2 ** (j + 2) / 3 / (2 ** next_pow2(ori_data[0].stats.npts)) / ori_data[0].stats.delta))

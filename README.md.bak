@@ -8,9 +8,7 @@ python main.py -h
 
 There are running commands in run.txt for synthetic and real test in the run.txt
 
-## To run the program you need to install
-
-[obspy][https://github.com/obspy/obspy] 
+## To run the program you need to install 
  
 
 ## UNDER DEVELOPING

@@ -104,7 +104,9 @@ def parse_my_line():
     parser.add_argument('--DeltaInv', default='0.5', help='Delta for data and greens for MT inversion. Default= 0.5 Hz')
     parser.add_argument('--iso', default='0', help='iso=0 [isotropic component set to 0, else iso=1. Default=0')
     parser.add_argument('--zcor', default='uniso', help='Fix Zcor for all 3 components (iso) or for each component (uniso), Default=uniso')
-
+    parser.add_argument('--jmin', default='None', help='Fix minimum wavelet scale used for inversion, Default=None')
+    parser.add_argument('--jmax', default='None', help='Fix maximum wavelet scale used for inversion, Default=None')
+        
     args = parser.parse_args()
 
     return args
