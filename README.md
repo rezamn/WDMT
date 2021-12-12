@@ -23,3 +23,5 @@ You also need to install gfortan for compiling the fortran part for calculation 
 
 
 ## UNDER DEVELOPING
+Developers: Reza Mansouri, Mohammad Shokri-Kaveh, Mehrdad Pakzad
+The manual will be published soon
