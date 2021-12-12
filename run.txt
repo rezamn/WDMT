@@ -1,4 +1,5 @@
+To run tests:
 python make_synthetics.py --info "F:\WDMT_invc\EX1\INFO" --sac True --epi "28.73 51.89 16" --sta station.rdseed  --pre 50 --len 300 --ori "20141230_041934" --bdp "2 0.02 1" --DeltaInv 0.5 --dva 2 --flim "0.01 0.02 0.1 1"  --output "F:\WDMT_invc"  --delta 0.5 --model irsc
 
+To run real data: 
 python main.py --info "F:\WDMT_invc\EX1\INFO" --input "F:\WDMT_invc\EX1\TEST\20141230_041934.9" --sac True --paz True --epi "28.73 51.98 16" --sta rdseed.stations --ins "Y" --pre 50 --len 255.5 --ori "20141230_041934.9" --bdp "2 0.02 1" --DeltaInv 0.5 --dva 2 --flim "0.01 0.02 0.5 1"  --output "F:\WDMT_invc\EX1\TEST" --delta 0.5 --model irsc --range "0 300" --zcor "iso" --deselect "LAR1" --jmin 4
-python main.py --info "/home/reza/WDMT_INV/INFO" --input "/home/reza/WDMT_INV/TEST/20140128_234734.9" --sac True --paz True --epi "32.53 50.01 15" --sta rdseed.stations --ins Y --pre 50 --len 255.5 --ori "20140128_234734" --bdp "2 0.02 1" --inst "Y" --deselect "NASN AHRM JHBN LIN HSRG" --DeltaInv 0.5 --dva 2 --flim "0.01 0.02 0.5 1"  --output "/home/reza/WDMT_INV/TEST/20140128_234734.9" --delta 0.5 --model irsc --range "0 250" --zcor iso --jmin 4
