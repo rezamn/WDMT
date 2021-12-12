@@ -12,19 +12,19 @@ There are running commands in run.txt for synthetic and real test in the run.txt
 
 Python 3.8 or newer
 
-[obspy][https://github.com/obspy/obspy] 
+[obspy](https://github.com/obspy/obspy) 
 
-[numpy][https://numpy.org/]
+[numpy](https://numpy.org/)
 
-[scipy][https://scipy.org/]
+[scipy](https://scipy.org/)
 
-[matplotlib][https://matplotlib.org/]
+[matplotlib](https://matplotlib.org/)
 
-[Pandas][https://pandas.pydata.org/]
+[Pandas](https://pandas.pydata.org/)
 
-[mplstereonet][https://pypi.org/project/mplstereonet/]
+[mplstereonet](https://pypi.org/project/mplstereonet/)
 
-[basemap][https://matplotlib.org/basemap/]
+[basemap](https://matplotlib.org/basemap/)
 
 You also need to install gfortan for compiling the fortran part for calculation of Green's Function.
 
