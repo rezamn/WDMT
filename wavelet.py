@@ -1,4 +1,5 @@
 import numpy as np
+import scipy
 import matplotlib.pyplot as plt
 import os
 
@@ -129,6 +130,7 @@ if __name__ == '__main__':
     plt.xlim([-10, 10])
     plt.ylim([-1.5, 1.5])
     plt.xlabel(r"$\omega$", loc="right")
+    plt.xticks(np.linspace(-3*np.pi,3*np.pi,7), ['-3π', '-2π', '-π', '0', 'π', '2π', '3π'])
     plt.ylabel(r"Amplitude", loc="top", rotation=0)
     plt.text(-9, 1.25, "(a)")
     plt.legend(loc="upper right", fontsize=6)
@@ -154,6 +156,7 @@ if __name__ == '__main__':
     plt.text(-4.5, 1.25, "(b)")
     plt.tight_layout()
     plt.savefig(".\\output\\fig1.eps")
+    plt.savefig(".\\output\\fig1.pdf")
     plt.show()
 
     N = 1024
@@ -175,53 +178,129 @@ if __name__ == '__main__':
     # print(np.sum(xt ** 2 - xi ** 2) / np.sum(xi ** 2))
 
     max_j = np.uint(np.log2(N))
-    fig, axs = plt.subplots(max_j + 1, 1, sharex='col', sharey='row', figsize=(6, 8))
+    fig, axs = plt.subplots(max_j + 1, 2, sharex='col', sharey='row', figsize=(12, 8))
 
     for i in np.arange(max_j):
         xt2 = inverse_wavelet_transform_j(a_jk[i], N, fs, i)
         # xt = inverse_wavelet_transform_2(a_jk, fs, i, i + 1)
         # plt.subplot(max_j, 1, i + 1)
         # axs[i, 1].plot(t, xt)
-        axs[i + 1].plot(t, xt2, linewidth=.5, color="blue")
-        axs[i + 1].set_ylim(-2, 2)
+        axs[i + 1][0].plot(t, xt2, linewidth=.5, color="blue")
+        axs[i + 1][0].set_ylim(-2, 2)
         if i != max_j - 1:
-            axs[i + 1].spines['right'].set_visible(False)
-            axs[i + 1].spines['left'].set_visible(True)
-            axs[i + 1].spines['top'].set_visible(False)
-            axs[i + 1].spines['bottom'].set_visible(False)
-            axs[i + 1].yaxis.set_major_locator(MultipleLocator(2))
-            axs[i + 1].yaxis.set_minor_locator(MultipleLocator(1))
+            axs[i + 1][0].spines['right'].set_visible(False)
+            axs[i + 1][0].spines['left'].set_visible(True)
+            axs[i + 1][0].spines['top'].set_visible(False)
+            axs[i + 1][0].spines['bottom'].set_visible(False)
+            axs[i + 1][0].yaxis.set_major_locator(MultipleLocator(2))
+            axs[i + 1][0].yaxis.set_minor_locator(MultipleLocator(1))
             # axs[i].set_yticks([])
-            axs[i + 1].set_xticks([])
-            axs[i + 1].tick_params(axis='both', which='both', bottom=False, top=False, right=False, left=True,
+            axs[i + 1][0].set_xticks([])
+            axs[i + 1][0].tick_params(axis='both', which='both', bottom=False, top=False, right=False, left=True,
                                    labelsize=6)
         else:
-            axs[i + 1].spines['bottom'].set_visible(True)
-            axs[i + 1].spines['right'].set_visible(False)
-            axs[i + 1].spines['top'].set_visible(False)
-            axs[i + 1].tick_params(axis='both', which='both', bottom=True, labelsize=6)
-            axs[i + 1].xaxis.set_major_locator(MultipleLocator(50))
-            axs[i + 1].xaxis.set_minor_locator(MultipleLocator(25))
-            axs[i + 1].yaxis.set_major_locator(MultipleLocator(2))
-            axs[i + 1].yaxis.set_minor_locator(MultipleLocator(1))
-            axs[i + 1].set_xlabel("time (s)")
-        axs[i + 1].set_ylabel("scale: j= %d\nfreq: f= [%.2f %.2f]" % (i, 2 ** i / 3 / T, 2 ** i * 4 / 3 / T),
-                              fontsize=6, rotation=0, labelpad=30)
+            axs[i + 1][0].spines['bottom'].set_visible(True)
+            axs[i + 1][0].spines['right'].set_visible(False)
+            axs[i + 1][0].spines['top'].set_visible(False)
+            axs[i + 1][0].tick_params(axis='both', which='both', bottom=True, labelsize=6)
+            axs[i + 1][0].xaxis.set_major_locator(MultipleLocator(20))
+            axs[i + 1][0].xaxis.set_minor_locator(MultipleLocator(10))
+            axs[i + 1][0].yaxis.set_major_locator(MultipleLocator(2))
+            axs[i + 1][0].yaxis.set_minor_locator(MultipleLocator(1))
+            axs[i + 1][0].set_xlabel("Time (sec)")
+        axs[i + 1][0].set_ylabel("Level: j= %d\nfreq: f= [%.2f %.2f]" % (i, 2 ** i / 3 / T, 2 ** i * 4 / 3 / T),
+                              fontsize=8, rotation=0, labelpad=40)
 
 
-    axs[0].plot(t, xi, linewidth=.5, color="red")
-    axs[0].spines['right'].set_visible(False)
-    axs[0].spines['left'].set_visible(True)
-    axs[0].spines['top'].set_visible(False)
-    axs[0].spines['bottom'].set_visible(False)
-    axs[0].tick_params(axis='both', which='both', bottom=False, top=False, right=False, left=True,
+    axs[0][0].plot(t, xi, linewidth=.5, color="red")
+    axs[0][0].spines['right'].set_visible(False)
+    axs[0][0].spines['left'].set_visible(True)
+    axs[0][0].spines['top'].set_visible(False)
+    axs[0][0].spines['bottom'].set_visible(False)
+    axs[0][0].tick_params(axis='both', which='both', bottom=False, top=False, right=False, left=True,
                        labelsize=6)
-    axs[0].set_ylim(-3, 3)
-    axs[0].yaxis.set_major_locator(MultipleLocator(3))
-    axs[0].yaxis.set_minor_locator(MultipleLocator(1))
-    axs[0].set_ylabel("Original signal", fontsize=6, rotation=0, labelpad=30)
+    axs[0][0].set_ylim(-3, 3)
+    axs[0][0].yaxis.set_major_locator(MultipleLocator(3))
+    axs[0][0].yaxis.set_minor_locator(MultipleLocator(1))
+    axs[0][0].set_ylabel("Original signal", fontsize=8, rotation=0, labelpad=30)
+    axs[0][0].set_title("(a)", fontsize=10)
 
 
     plt.tight_layout()
+    # plt.savefig(".\\output\\fig2.eps")
+    # plt.show()
+
+    ###############
+    N = 1024
+    fs = 10
+    T = N / fs
+    t = np.arange(N) / fs
+    xi = np.sin(2 * np.pi * 1 * t) + np.sin(2 * np.pi * .1 * t) + np.sin(2 * np.pi * .01 * t)
+    noise = np.random.randn(xi.size) * .15 * np.max(np.abs(xi))
+    xi += noise
+    win = scipy.signal.windows.tukey(N, alpha=.1)
+    xi = scipy.signal.detrend(xi)*win
+    a_jk = wavelet_transform(xi, N, fs)
+    xt = inverse_wavelet_transform(a_jk, fs)
+
+    # plt.figure(3)
+    # plt.subplot(211)
+    # plt.plot(t, xi)
+    # plt.subplot(212)
+    # plt.plot(t, xi)
+    # plt.plot(t, xt)
+    # plt.show()
+    # print(np.sum(xt ** 2 - xi ** 2) / np.sum(xi ** 2))
+
+    max_j = np.uint(np.log2(N))
+    # fig, axs = plt.subplots(max_j + 1, 1, sharex='col', sharey='row', figsize=(6, 8))
+
+    for i in np.arange(max_j):
+        xt2 = inverse_wavelet_transform_j(a_jk[i], N, fs, i)
+        # xt = inverse_wavelet_transform_2(a_jk, fs, i, i + 1)
+        # plt.subplot(max_j, 1, i + 1)
+        # axs[i, 1].plot(t, xt)
+        axs[i + 1][1].plot(t, xt2, linewidth=.5, color="blue")
+        axs[i + 1][1].set_ylim(-2, 2)
+        if i != max_j - 1:
+            axs[i + 1][1].spines['right'].set_visible(False)
+            axs[i + 1][1].spines['left'].set_visible(False)
+            axs[i + 1][1].spines['top'].set_visible(False)
+            axs[i + 1][1].spines['bottom'].set_visible(False)
+            # axs[i + 1][1].yaxis.set_major_locator(MultipleLocator(2))
+            # axs[i + 1][1].yaxis.set_minor_locator(MultipleLocator(1))
+            # axs[i].set_yticks([])
+            axs[i + 1][1].set_xticks([])
+            axs[i + 1][1].tick_params(axis='both', which='both', bottom=False, top=False, right=False, left=False,
+                                   labelsize=6)
+        else:
+            axs[i + 1][1].spines['bottom'].set_visible(True)
+            axs[i + 1][1].spines['left'].set_visible(False)
+            axs[i + 1][1].spines['right'].set_visible(False)
+            axs[i + 1][1].spines['top'].set_visible(False)
+            axs[i + 1][1].tick_params(axis='both', which='both', bottom=True, left=False, labelsize=6)
+            axs[i + 1][1].xaxis.set_major_locator(MultipleLocator(20))
+            axs[i + 1][1].xaxis.set_minor_locator(MultipleLocator(10))
+            # axs[i + 1][1].yaxis.set_major_locator(MultipleLocator(2))
+            # axs[i + 1][1].yaxis.set_minor_locator(MultipleLocator(1))
+            axs[i + 1][1].set_xlabel("Time (sec)")
+        # axs[i + 1][1].set_ylabel("scale: j= %d\nfreq: f= [%.2f %.2f]" % (i, 2 ** i / 3 / T, 2 ** i * 4 / 3 / T),
+        #                       fontsize=6, rotation=0, labelpad=30)
+
+    axs[0][1].plot(t, xi, linewidth=.5, color="red")
+    axs[0][1].spines['right'].set_visible(False)
+    axs[0][1].spines['left'].set_visible(False)
+    axs[0][1].spines['top'].set_visible(False)
+    axs[0][1].spines['bottom'].set_visible(False)
+    axs[0][1].tick_params(axis='both', which='both', bottom=False, top=False, right=False, left=False,
+                       labelsize=6)
+    axs[0][1].set_ylim(-3, 3)
+    axs[0][1].yaxis.set_major_locator(MultipleLocator(3))
+    axs[0][1].yaxis.set_minor_locator(MultipleLocator(1))
+    # axs[0][1].set_ylabel("Original signal", fontsize=6, rotation=0, labelpad=30)
+    axs[0][1].set_title("(b)", fontsize=10)
+
+    plt.tight_layout()
     plt.savefig(".\\output\\fig2.eps")
+    plt.savefig(".\\output\\fig2.pdf")
     plt.show()

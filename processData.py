@@ -11,11 +11,12 @@ def station_list(data):
 
 
 def cut_window(args, data):
-    tb = UTCDateTime(args.ori)
-    tb = tb - float(args.pre)
-    te = tb + float(args.len)
-    data.trim(starttime=tb, endtime=te, pad=True, fill_value=0.0)
-    return tb, te, data
+    for i in range(len(data)):
+        tb = UTCDateTime(args.ori)
+        tb = tb + data[i].stats.dist/float(args.rvel) - float(args.pre)
+        te = tb + float(args.len)
+        data[i].trim(starttime=tb, endtime=te, pad=True, fill_value=0.0)
+    return data
 
 
 def del_az_to_stream(data):
@@ -35,8 +36,8 @@ def del_az_to_stream(data):
     return data
 
 
-def remove_short_traces(data, tolerance, start_time, end_time):
-    duration = end_time - start_time
+def remove_short_traces(args, data, tolerance):
+    duration = float(args.len)
     no_gap = Stream()
 
     for tr in data:
@@ -199,12 +200,12 @@ def remove_gap_data(data):
 
 def clean_stream(args, data):
     data = remove_mean_trend(data)
-    tb, te, data = cut_window(args, data)
     data = remove_gap_data(data)
-    data = remove_short_traces(data, 100, tb, te)
+    data = remove_short_traces(args, data, 100)
     data = remove_21_component(data)
     data = del_az_to_stream(data)
-    data = sort_stream(data, ['station', 'dist', 'az'])
+    data = cut_window(args, data)
+    data = sort_stream(data, ['dist', 'az', 'station'])
     data = rotate_to_gcp(data)
     if args.deselect != "None":
         data = remove_trace(args.deselect.split(), data, "r")

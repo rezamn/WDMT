@@ -1,8 +1,8 @@
 from makeSynteric import make_synthetic_moment, new_make_synthetic
 from myParser import parse_my_line
-from myPlot import plot_data, plot_stream_wavelets, plot_green, plot_data_vs_synthetics, plot_data_vs_synthetics_wc, create_map
+from myPlot import plot_data, plot_stream_wavelets, plot_green, plot_data_vs_synthetics, plot_data_vs_synthetics_wc, create_map1
 from WDMT_inv import correlate_phase_shift, set_GTG, set_station_weights, righthand_side, extract_parameters_mt, to_rtf, \
-    to_xyz, check_fit
+    to_xyz, check_fit, check_fit1
 from gaussj import gaussian_jordan
 from wavelet import wavelet_transform_j, inverse_wavelet_transform_j, next_pow2
 from obspy.imaging.beachball import beachball
@@ -18,12 +18,15 @@ import mplstereonet
 
 args = parse_my_line()
 print(args)
-strike_dip_rake = [45, 45, 45, 1.0e24, 0]  # [0, 90, 0, 1.3e24, 0]#[24, 69, 47, 1.3e24, 0]
-azimuths = [0, 45, 90, 135, 180, 225, 270, 315]
-distance = [100, 350, 100, 350, 100, 350, 100, 350]
-random_noise_amp = 0.05
+strike_dip_rake = [205, 26, 132, 4.1e23, 0]  # [0, 90, 0, 1.3e24, 0]#[24, 69, 47, 1.3e24, 0]
+azimuths = [283, 28, 99, 143, 116]
+distance = [68.5, 113.5, 158.5, 193.1, 262.9]
+network_code = ["I2", "IR", "IR", "IR", "IR"]
+station_code = ["AHRM", "SHI", "JHRM", "LMD1", "LAR1"]
+np.random.seed(21031983)
+random_noise_amp = 0.00
 freq_noise_amp = 0.00
-freq_noise_freq = 0.2
+freq_noise_freq = 0.0
 ###########################
 # dont change anything below if you are not skillful
 
@@ -36,6 +39,14 @@ if not os.path.exists(os.path.join(args.output, "syn_data")):
 stations = os.path.join(args.output, 'syn_data', 'synth_stations.txt')
 fid = open(stations, "w")
 
+for i in range(len(synthetics)//3):
+    synthetics[i * 3 + 0].stats.station = station_code[i]
+    synthetics[i * 3 + 1].stats.station = station_code[i]
+    synthetics[i * 3 + 2].stats.station = station_code[i]
+    synthetics[i * 3 + 0].stats.network = network_code[i]
+    synthetics[i * 3 + 1].stats.network = network_code[i]
+    synthetics[i * 3 + 2].stats.network = network_code[i]
+
 for tr in synthetics:
     print(tr.stats.Zcor, tr.stats.Tcor, tr.stats.Rcor)
     tr_name = "%s.%s.%s.SAC" % (tr.stats.network, tr.stats.station, tr.stats.channel)
@@ -46,8 +57,8 @@ for tr in synthetics:
 fid.close()
 
 fid = open(os.path.join(args.output,"output", "results.txt"), "w")
-fid.write("j\tfrqmin\tfreqmax\tMxx\tMyy\tMzz\tMxy\tMxz\tMyz\tMw\tMo\tDC\tCLVD\tISO\tVAR\tQUALITY\tstrike1\tdip1\trake1"
-          "\tstrike2\tdip2\trake2\n") 
+fid.write("j\tfrqmin\tfreqmax\tMxx\tMyy\tMzz\tMxy\tMxz\tMyz\tEMxx\tEMyy\tEMzz\tEMxy\tEMxz\tEMyz\tMw\tMo\tDC\tCLVD\tISO\tVAR\tQUALITY\tstrike1\tdip1\trake1"
+          "\tstrike2\tdip2\trake2\n")
 
 # synthetics.filter(type="bandpass", freqmin=.01, freqmax=0.05, corners=2)
 # greens.filter(type="bandpass", freqmin=.01, freqmax=0.05, corners=2)
@@ -83,9 +94,9 @@ for i in range(len(ori_data)):
     maxi = np.max(ori_data[i].data)
     ori_data[i].data = ori_data[i].data + freq_noise_amp * maxi * noise + random_noise_amp * maxi * rand_noise
 plot_green(args, greens)
-plot_data(args, ori_data)
+plot_data(args, ori_data, 5)
 plot_stream_wavelets(args, ori_data)
-create_map(args, "map.eps", ori_data)
+create_map1(args, "synt_map", ori_data, strike_dip_rake)
 
 for j in range(int(next_pow2(ori_data[0].stats.npts))):
     print("j = %d freqmin = %.3f freqmax = %.3f" % (
@@ -137,25 +148,31 @@ for j in range(int(next_pow2(ori_data[0].stats.npts))):
         synthetics_t[n].data = inverse_wavelet_transform_j(synthetics[n].data, ori_data[n].stats.npts,
                                                            1 / ori_data[n].stats.delta, j)
     synthetics_t = synthetics_t.taper(max_percentage=.1)
-    name_t = "dataVSsynthetcs%d.pdf" % j
-    name_wc = "dataVSsynthetcs_wc%d.pdf" % j
-    plot_data_vs_synthetics(args, name_t, synthetics_t, sy_t)
-    plot_data_vs_synthetics_wc(args, name_wc, synthetics, sy)
+
 
     # for iii in range(len(synthetics)):
     #     print(np.max(sy[iii].data), np.max(synthetics[iii].data))
 
     st, sy, variance, quality = check_fit(synthetics, sy)
+    name_t = "dataVSsynthetcs%d.pdf" % j
+    name_wc = "dataVSsynthetcs_wc%d.pdf" % j
+    freq_level = [synthetics_t[0].stats.npts*synthetics_t[0].stats.delta, j]
+    plot_data_vs_synthetics(args, name_t, synthetics_t, sy_t, freq_level, 5)
+    plot_data_vs_synthetics_wc(args, name_wc, synthetics, sy, freq_level, 5)
 
     print("Mw = %.1f Mo = %.2e DC = %.1f%% CLVD = %.1f%% ISO = %.1f%% VAR = %.1f QUALITY = %d" % (
         Mw, Mo, Pdc, Pclvd, Pciso, variance, quality))
     print("strike1 = %.1f dip1 = %.1f rake1 = %.1f" % (np1[0], np1[1], np1[2]))
     print("strike2 = %.1f dip2 = %.1f rake2 = %.1f" % (np2[0], np2[1], np2[2]))
-    fid.write("%d\t%.4f\t%.4f\t%.2e\t%.2e\t%.2e\t%.2e\t%.2e\t%.2e\t%.1f\t%.2e\t%.1f\t%.1f\t%.1f\t%.2f\t%d\t%.1f\t%.1f"
+    fid.write("%d\t%.4f\t%.4f\t%.2e\t%.2e\t%.2e\t%.2e\t%.2e\t%.2e\t%.2e\t%.2e\t%.2e\t%.2e\t%.2e\t%.2e\t%.1f\t%.2e\t"
+              "%.1f\t%.1f\t%.1f\t%.2f\t%d\t%.1f\t%.1f"
               "\t%.1f\t%.1f\t%.1f\t%.1f\n" %
               (j, 2 ** j / 3 / (2 ** next_pow2(ori_data[0].stats.npts)) / ori_data[0].stats.delta,
                2 ** (j + 2) / 3 / (2 ** next_pow2(ori_data[0].stats.npts)) / ori_data[0].stats.delta,
-               MTx[0][0], MTx[1][1], MTx[2][2], MTx[0][1], MTx[0][2], MTx[2][2], Mw, Mo, Pdc, Pclvd, Pciso, variance,
+               MTx[0][0], MTx[1][1], MTx[2][2], MTx[0][1], MTx[0][2], MTx[2][2],
+               (1 - variance) * MTx[0][0] / 2, (1 - variance) * MTx[1][1] / 2, (1 - variance) * MTx[2][2] / 2,
+               (1 - variance) * MTx[0][1] / 2, (1 - variance) * MTx[0][2] / 2, (1 - variance) * MTx[2][2] / 2,
+               Mw, Mo, Pdc, Pclvd, Pciso, variance,
                quality, np1[0], np1[1], np1[2], np2[0], np2[1], np2[2]))
 
     for kk in range(int(variance)):

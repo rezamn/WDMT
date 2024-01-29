@@ -2,13 +2,14 @@ from myParser import parse_my_line
 from loadData import load_data, list_stream
 from processData import station_list
 from processData import clean_stream
-from myPlot import plot_data, plot_green, plot_stream_wavelets, plot_data_vs_synthetics, plot_data_vs_synthetics_wc
+from myPlot import plot_data, plot_green, plot_data_vs_greens, plot_stream_wavelets, plot_data_vs_synthetics, plot_data_vs_synthetics_wc
 from filterSeismogram import remove_instrument_response, decimate_data, filtering_data
 from makeGreen import generate_greens
 from readGreen import aquireGreens, reorderGreen, upGrStats
 from wavelet import next_pow2, wavelet_transform_j, inverse_wavelet_transform_j
-from WDMT_inv import new_correlate_phase_shift, set_GTG, set_station_weights, righthand_side, extract_parameters_mt, to_rtf, \
-    to_xyz, check_fit, align_phase, new_correlate_shift
+from WDMT_inv import new_correlate_phase_shift, set_GTG, set_station_weights, righthand_side, extract_parameters_mt, \
+    to_rtf, \
+    to_xyz, check_fit, align_phase, new_correlate_shift, align_phase2, correlate_phase_shift, check_fit1
 from gaussj import gaussian_jordan
 from makeSynteric import make_synthetic_moment
 import obspy.signal
@@ -17,14 +18,17 @@ import mplstereonet
 import os
 import copy
 import matplotlib.pyplot as plt
+import time
 
 args = parse_my_line()
 print(args)
 
-
 if not os.path.exists(os.path.join(args.output, "output")):
     os.mkdir(os.path.join(args.output, "output"))
-fid = open(os.path.join(args.output,"output", "results.txt"), "w")
+fid = open(os.path.join(args.output, "output", "results.txt"), "w")
+fid.write("j\tfrqmin\tfreqmax\tMxx\tMyy\tMzz\tMxy\tMxz\tMyz\tEMxx\tEMyy\tEMzz\tEMxy\tEMxz\tEMyz\tMw\tMo\tDC\tCLVD"
+          "\tISO\tVAR\tQUALITY\tstrike1\tdip1\trake1"
+          "\tstrike2\tdip2\trake2\n")
 data = load_data(args)
 
 data = clean_stream(args, data)
@@ -54,8 +58,12 @@ greens = upGrStats(greens, data)
 ori_data = copy.deepcopy(data)
 ori_gree = copy.deepcopy(greens)
 
-plot_green(args, greens)
+plot_data_vs_greens(args,ori_data,ori_gree,"data_vs_greens.pdf")
+
+plot_green(args, ori_gree)
 plot_data(args, ori_data)
+# pause = input("the seis.pdf file is ready in output folder,\n"
+#               "take look at it and if its ok press enter ...")
 # plot_stream_wavelets(args, ori_data)
 
 gfscale = 1e+20
@@ -71,11 +79,11 @@ if args.jmin == 'None':
 else:
     jmin = int(args.jmin)
 
-if args.jmax = 'None':
-	  jmax = int(next_pow2(ori_data[0].stats.npts))
+if args.jmax == 'None':
+    jmax = int(next_pow2(ori_data[0].stats.npts))
 else:
-	  jmax = int(args.jmax)
-	  	
+    jmax = int(args.jmax)
+
 for j in range(jmin, jmax):
     print("j = %d freqmin = %.3f freqmax = %.3f" % (
         j, 2 ** j / 3 / (2 ** next_pow2(ori_data[0].stats.npts)) / ori_data[0].stats.delta,
@@ -87,11 +95,21 @@ for j in range(jmin, jmax):
                                                    j)
     for k in range(len(ori_gree)):
         greens[k].data = wavelet_transform_j(ori_gree[k].data, ori_gree[k].stats.npts, 1 / ori_gree[k].stats.delta, j)
-        greens[k].data = inverse_wavelet_transform_j(greens[k].data, ori_gree[0].stats.npts, 1 / ori_gree[0].stats.delta,
-                                                   j)
+        greens[k].data = inverse_wavelet_transform_j(greens[k].data, ori_gree[0].stats.npts,
+                                                     1 / ori_gree[0].stats.delta,
+                                                    j)
 
-    greens, data = new_correlate_phase_shift(greens, data)
-    data = align_phase(data, args)
+    # greens, data = correlate_phase_shift(greens, data)
+    # data = align_phase(data, args)
+    # plot_green(args, greens)
+    # plot_data(args, data)
+    # plot_data_vs_greens(args,data,greens,"data_vs_greens.pdf")
+    # for tr in data:
+    #     print(tr.stats.station, tr.stats.channel, tr.stats.Zcor, tr.stats.Tcor, tr.stats.Rcor, tr.stats.Vcor)
+    # pause = input("the file is ready ...")
+    # plot_green(args,greens)
+    # pause = input("the file is ready ...")
+
     # for tr in data:
     #     print(tr.stats.station, tr.stats.channel, tr.stats.Zcor, tr.stats.Tcor, tr.stats.Rcor, tr.stats.Vcor)
 
@@ -136,32 +154,36 @@ for j in range(jmin, jmax):
     data_t = copy.deepcopy(data)
 
     for n in range(len(sy_t)):
-        sy_t[n].data = inverse_wavelet_transform_j(sy[n].data, ori_data[n].stats.npts, 1/ori_data[n].stats.delta, j)
-        data_t[n].data = inverse_wavelet_transform_j(data[n].data, ori_data[n].stats.npts, 1/ori_data[n].stats.delta, j)
+        sy_t[n].data = inverse_wavelet_transform_j(sy[n].data, ori_data[n].stats.npts, 1 / ori_data[n].stats.delta, j)
+        data_t[n].data = inverse_wavelet_transform_j(data[n].data, ori_data[n].stats.npts, 1 / ori_data[n].stats.delta,
+                                                     j)
 
     name_t = "dataVSsynthetcs%d.pdf" % j
-    name_wc= "dataVSsynthetcs_wc%d.pdf" % j
-    data_t, sy_t = new_correlate_shift(data_t, sy_t)
-    data_t = align_phase(data_t, args)
-    plot_data_vs_synthetics(args, name_t, data_t, sy_t, len(data_t)//3)
-    plot_data_vs_synthetics_wc(args, name_wc, data, sy, len(data)//3)
-
-
+    name_wc = "dataVSsynthetcs_wc%d.pdf" % j
+    # data_t, sy_t = new_correlate_shift(data_t, sy_t)
+    # data_t = align_phase2(data_t, args)
+    frequency_limit = [data_t[0].stats.npts*data_t[0].stats.delta, j]
+    plot_data_vs_synthetics(args, name_t, data_t, sy_t, frequency_limit, len(data_t) // 3)
+    plot_data_vs_synthetics_wc(args, name_wc, data, sy, frequency_limit, len(data) // 3)
 
     # for iii in range(len(synthetics)):
     #     print(np.max(sy[iii].data), np.max(synthetics[iii].data))
 
-    data_t, sy_t, variance, quality = check_fit(data_t, sy_t)
+    data_t, sy_t, variance, quality = check_fit1(data_t, sy_t)
 
     print("Mw = %.1f Mo = %.2e DC = %.1f%% CLVD = %.1f%% ISO = %.1f%% VAR = %.2f QUALITY = %d" % (
-          Mw, Mo, Pdc, Pclvd, Pciso, variance, quality))
+        Mw, Mo, Pdc, Pclvd, Pciso, variance, quality))
     print("strike1 = %.1f dip1 = %.1f rake1 = %.1f" % (np1[0], np1[1], np1[2]))
     print("strike2 = %.1f dip2 = %.1f rake2 = %.1f" % (np2[0], np2[1], np2[2]))
-    fid.write("%d\t%.4f\t%.4f\t%.2e\t%.2e\t%.2e\t%.2e\t%.2e\t%.2e\t%.1f\t%.2e\t%.1f\t%.1f\t%.1f\t%.2f\t%d\t%.1f\t%.1f"
+    fid.write("%d\t%.4f\t%.4f\t%.2e\t%.2e\t%.2e\t%.2e\t%.2e\t%.2e\t%.2e\t%.2e\t%.2e\t%.2e\t%.2e\t%.2e\t%.1f\t%.2e\t"
+              "%.1f\t%.1f\t%.1f\t%.2f\t%d\t%.1f\t%.1f"
               "\t%.1f\t%.1f\t%.1f\t%.1f\n" %
               (j, 2 ** j / 3 / (2 ** next_pow2(ori_data[0].stats.npts)) / ori_data[0].stats.delta,
                2 ** (j + 2) / 3 / (2 ** next_pow2(ori_data[0].stats.npts)) / ori_data[0].stats.delta,
-               MTx[0][0], MTx[1][1], MTx[2][2], MTx[0][1], MTx[0][2], MTx[2][2], Mw, Mo, Pdc, Pclvd, Pciso, variance,
+               MTx[0][0], MTx[1][1], MTx[2][2], MTx[0][1], MTx[0][2], MTx[2][2],
+               (1 - variance) * MTx[0][0] / 2, (1 - variance) * MTx[1][1] / 2, (1 - variance) * MTx[2][2] / 2,
+               (1 - variance) * MTx[0][1] / 2, (1 - variance) * MTx[0][2] / 2, (1 - variance) * MTx[2][2] / 2,
+               Mw, Mo, Pdc, Pclvd, Pciso, variance,
                quality, np1[0], np1[1], np1[2], np2[0], np2[1], np2[2]))
 
     for kk in range(int(variance)):

@@ -42,7 +42,7 @@ def remove_instrument_response(args, data):
 
         # remove stations if len(toPurge>0)
         if len(to_remove) > 0:
-            data = remove_trace(data, to_remove, 'r')
+            data = remove_trace(to_remove, data, 'r')
             print("Check if station/channel/network/location of the PZs files and the same string within loaded "
                   "binary files ")
             print("do correspond. It may occour for instance that the headers strings of the waveform files (e.g. "

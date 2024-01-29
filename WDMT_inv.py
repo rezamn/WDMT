@@ -1,5 +1,5 @@
 import numpy as np
-from obspy.signal.cross_correlation import xcorr
+from obspy.signal.cross_correlation import xcorr_max, correlate
 from obspy.imaging.beachball import MomentTensor, mt2axes, aux_plane, mt2plane
 import copy
 
@@ -12,7 +12,7 @@ def correlate_phase_shift(gr, st):
 
     # width for time cross correlation
     print("gr", len(gr), "st", len(st))
-    wid = int(float(st[0].stats.npts) / 4)
+    wid = int(float(st[0].stats.npts)/10)
 
     for i in range(int(len(st) / 3)):
 
@@ -22,46 +22,46 @@ def correlate_phase_shift(gr, st):
         v = np.arange(6.).reshape(3, 2)
 
         # Tangential
-        a, b = xcorr(st[3 * i + 0], gr[10 * i + 0], wid)
+        a, b = xcorr_max(correlate(st[3 * i + 0], gr[10 * i + 0], wid))
         x[0][0] = abs(b)
         x[0][1] = a
         t[0][0] = abs(b)
         t[0][1] = a
-        a, b = xcorr(st[3 * i + 0], gr[10 * i + 1], wid)
+        a, b = xcorr_max(correlate(st[3 * i + 0], gr[10 * i + 1], wid))
         x[1][0] = abs(b)
         x[1][1] = a
         t[1][0] = abs(b)
         t[1][1] = a
 
         # Radial
-        a, b = xcorr(st[3 * i + 1], gr[10 * i + 2], wid)
+        a, b = xcorr_max(correlate(st[3 * i + 1], gr[10 * i + 2], wid))
         x[2][0] = abs(b)
         x[2][1] = a
         r[0][0] = abs(b)
         r[0][1] = a
-        a, b = xcorr(st[3 * i + 1], gr[10 * i + 3], wid)
+        a, b = xcorr_max(correlate(st[3 * i + 1], gr[10 * i + 3], wid))
         x[3][0] = abs(b)
         x[3][1] = a
         r[1][0] = abs(b)
         r[1][1] = a
-        a, b = xcorr(st[3 * i + 1], gr[10 * i + 4], wid)
+        a, b = xcorr_max(correlate(st[3 * i + 1], gr[10 * i + 4], wid))
         x[4][0] = abs(b)
         x[4][1] = a
         r[2][0] = abs(b)
         r[2][1] = a
 
         # Vertical
-        a, b = xcorr(st[3 * i + 2], gr[10 * i + 5], wid)
+        a, b = xcorr_max(correlate(st[3 * i + 2], gr[10 * i + 5], wid))
         x[5][0] = abs(b)
         x[5][1] = a
         v[0][0] = abs(b)
         v[0][1] = a
-        a, b = xcorr(st[3 * i + 2], gr[10 * i + 6], wid)
+        a, b = xcorr_max(correlate(st[3 * i + 2], gr[10 * i + 6], wid))
         x[6][0] = abs(b)
         x[6][1] = a
         v[1][0] = abs(b)
         v[1][1] = a
-        a, b = xcorr(st[3 * i + 2], gr[10 * i + 7], wid)
+        a, b = xcorr_max(correlate(st[3 * i + 2], gr[10 * i + 7], wid))
         x[7][0] = abs(b)
         x[7][1] = a
         v[2][0] = abs(b)
@@ -103,7 +103,8 @@ def new_correlate_phase_shift(gr, st):
         t = np.zeros(2)
         r = np.zeros(3)
         v = np.zeros(3)
-
+        #TODO: normalize the greens functins in correlation
+        #TODO: take all shifts from RTZ greens function
         # Tangential
         t[0] = np.argmax(np.abs(np.correlate(st[3 * i + 0].data, gr[10 * i + 0].data, wid))) - gr[10 * i + 0].stats.npts
         t[1] = np.argmax(np.abs(np.correlate(st[3 * i + 0].data, gr[10 * i + 1].data, wid))) - gr[10 * i + 1].stats.npts
@@ -145,42 +146,46 @@ def new_correlate_phase_shift(gr, st):
 
 def new_correlate_shift(st, syn):
     wid = 'full'
-    for i in range(int(len(st) / 3)):
+    for i in range(int(len(st) // 3)):
+        # print(i, st[3 * i + 0].stats.station)
 
         t = np.zeros(1)
         r = np.zeros(1)
         v = np.zeros(1)
 
         # Tangential
-        t[0] = np.argmax(np.correlate(st[3 * i + 0].data, syn[3 * i + 0].data, wid)) - syn[3 * i + 0].stats.npts
+        t[0] = np.argmax(np.correlate(st[3 * i + 0].data, syn[3 * i + 0].data, wid)) - syn[3 * i + 0].stats.npts - 1
 
         # Radials
-        r[0] = np.argmax(np.correlate(st[3 * i + 1].data, syn[3 * i + 1].data, wid)) - syn[3 * i + 1].stats.npts
+        r[0] = np.argmax(np.correlate(st[3 * i + 1].data, syn[3 * i + 1].data, wid)) - syn[3 * i + 1].stats.npts - 1
 
         # Vertical
-        v[0] = np.argmax(np.correlate(st[3 * i + 2].data, syn[3 * i + 2].data, wid)) - syn[3 * i + 2].stats.npts
+        v[0] = np.argmax(np.correlate(st[3 * i + 2].data, syn[3 * i + 2].data, wid)) - syn[3 * i + 2].stats.npts - 1
 
         # sort for zcor
-        T = np.min(t)
-        R = np.min(r)
-        V = np.min(v)
+        T = t[0]
+        R = r[0]
+        V = v[0]
         X = (T + R + V) / 3
+        # print(st[3*i+0].stats.station, T, R, V)
         Zco = V
         Tco = T
         Rco = R
         Vco = X
 
         # Update stats
-        for l in range(0, 3):
-            st[3 * i + l].stats.Zcor = Zco
-            st[3 * i + l].stats.Tcor = Tco
-            st[3 * i + l].stats.Rcor = Rco
-            st[3 * i + l].stats.Vcor = Vco
+        for l in range(3):
+            st[3 * i + l].stats.Zcor2 = Zco
+            st[3 * i + l].stats.Tcor2 = Tco
+            st[3 * i + l].stats.Rcor2 = Rco
+            st[3 * i + l].stats.Vcor2 = Vco
 
     return st, syn
 
 
 def align_phase(st, args):
+    rvel = float(args.rvel)
+    pre = float(args.pre)
     if args.zcor == "iso":
 
         for i in range(len(st)):
@@ -193,7 +198,7 @@ def align_phase(st, args):
                     st[i].data[-k] = 0
 
             elif ph <= 1:
-                st[i].data = np.roll(st[i].data, ph)
+                st[i].data = np.roll(st[i].data, -ph)
                 for k in range(0, ph):
                     st[i].data[k] = 0
 
@@ -216,12 +221,37 @@ def align_phase(st, args):
                     st[i].data[-k] = 0
 
             elif ph <= 1:
-                st[i].data = np.roll(st[i].data, ph)
+                st[i].data = np.roll(st[i].data, -ph)
                 for k in range(0, ph):
                     st[i].data[k] = 0
 
             else:
                 pass
+    return st
+
+def align_phase2(st, args):
+
+    for i in range(len(st)):
+
+        if st[i].stats.channel[-1] == "Z":
+            ph = int(st[i].stats.Zcor2)
+        elif st[i].stats.channel[-1] == "R":
+            ph = int(st[i].stats.Rcor2)
+        elif st[i].stats.channel[-1] == "T":
+            ph = int(st[i].stats.Tcor2)
+
+        if ph >= 1:
+            st[i].data = np.roll(st[i].data, -ph)
+            for k in range(1, ph):
+                st[i].data[-k] = 0
+
+        elif ph <= 1:
+            st[i].data = np.roll(st[i].data, -ph)
+            for k in range(0, ph):
+                st[i].data[k] = 0
+
+        else:
+            pass
 
     return st
 
@@ -482,6 +512,38 @@ def extract_parameters_mt(MTx, scale):
     return Mo, Mw, Pdc, Pclvd, pciso, EigVal, EigVec, T, N, P, np1, np2
 
 
+def check_fit1(st, sy):
+    weight_sum = 0.0
+    variance = 0.0
+
+    for i in range(len(st)):
+        st[i].data = st[i].data / np.max(np.abs(st[i].data))
+        sy[i].data = sy[i].data / np.max(np.abs(sy[i].data))
+
+    for i in range(len(st)):
+        Var = sum(st[i].data*sy[i].data)/np.sqrt(sum(st[i].data**2)*sum(sy[i].data**2))
+        st[i].stats.VR = Var
+        weight_sum += st[i].stats.W
+        variance += st[i].stats.W * Var
+
+    variance /= weight_sum
+    variance *= 100
+
+    if variance < 20.0:
+        quality = 0
+    elif 20.0 <= variance < 40.0:
+        quality = 1
+    elif 40.0 <= variance < 60.0:
+        quality = 2
+    elif 60.0 <= variance < 80.0:
+        quality = 3
+    else:
+        quality = 4
+
+    return st, sy, variance, quality
+
+
+
 def check_fit(st, sy):
     weight_sum = 0.0
     total_energy = 0.0
@@ -548,7 +610,6 @@ def check_fit(st, sy):
         quality = 4
 
     return st, sy, variance, quality
-
 
 def pack_meta_moment_tensor(M, Mo, Mw, Pdc, Pclvd, EigVal, EigVec, T, N, P, np1, np2, var, quality, k):
     meta = np.zeros(39)

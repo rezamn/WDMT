@@ -176,7 +176,7 @@ def create_new_model(number_of_layers, lines, depth, number_of_cpus, number_of_s
     # Station parameters
     ph_vel = [10000, 30]
     # ra_vel=[1.2,1.0]    # less than ralay veleocity of the model
-    ra_vel = [2.6, 2.5]  # less than ralay veleocity of the model
+    ra_vel = [1.0, 0.9]  # less than ralay veleocity of the model
     x = 6
     beg_freq = 1
     nr_l = number_of_layers[0] + number_of_layers[1]
