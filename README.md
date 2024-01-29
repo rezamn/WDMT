@@ -30,6 +30,6 @@ You also need to install gfortan for compiling the fortran part for calculation 
 
 
 ## UNDER DEVELOPING
-Developers: Reza Mansouri, Mohammad Shokri-Kaveh, Mehrdad Pakzad
+Developers: Reza Mansouri, Mohammad Shokri-Kaveh
 
 The manual will be published soon
